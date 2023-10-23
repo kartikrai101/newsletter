@@ -1,4 +1,5 @@
 module.exports = {
     Company_details: require('./companyDetailsModel'),
-    Super_admin: require('./superAdminModel')
+    Super_admin: require('./superAdminModel'),
+    Admin: require('./adminModel')
 }
