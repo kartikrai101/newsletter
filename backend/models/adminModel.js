@@ -2,7 +2,7 @@ const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../database/connection');
 
 // create the admin model
-const Admin = sequelize.define('Admin', {
+const Admin = sequelize.define('Admins', {
     admin_id: {
         type: DataTypes.STRING,
         allowNull: false,

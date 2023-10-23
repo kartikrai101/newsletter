@@ -2,7 +2,7 @@ const {Sequelize, DataTypes} = require('sequelize')
 const sequelize = require('../database/connection')
 
 // defining the employee model
-const Employee = sequelize.define('Employee', {
+const Employee = sequelize.define('Employees', {
     employee_id: {
         type: DataTypes.STRING,
         unique: true,
@@ -59,5 +59,5 @@ const Employee = sequelize.define('Employee', {
     freezeTableName: true
 })
 
-Employee.sync({alter: true})
+Employee.sync({force: true})
 module.exports = Employee;
