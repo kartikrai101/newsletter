@@ -4,4 +4,5 @@ module.exports = {
     Admins: require('./adminModel'),
     Employees: require('./employeeModel'),
     Posts: require('./postModel'),
+    Comments: require('./commentModel'),
 }
