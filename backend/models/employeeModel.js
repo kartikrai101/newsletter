@@ -2,7 +2,7 @@ const {Sequelize, DataTypes} = require('sequelize')
 const sequelize = require('../database/connection')
 
 // defining the employee model
-const Employee = sequelize.define('Employees', {
+const Employee = sequelize.define('employees', {
     employee_id: {
         type: DataTypes.STRING,
         unique: true,

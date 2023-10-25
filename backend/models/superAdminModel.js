@@ -1,7 +1,7 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../database/connection');
 
-const Super_admin = sequelize.define('Super_admins', {
+const Super_admin = sequelize.define('super_admins', {
     super_admin_id: {
         type: DataTypes.STRING,
         allowNull: false,

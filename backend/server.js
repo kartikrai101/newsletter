@@ -2,7 +2,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const app = express();
-const client = require('./database/connection');
 const sequelize = require('./database/connection');
 const Model = require('./models');
 
@@ -17,10 +16,12 @@ app.use(bodyParser.urlencoded({extended: true}));
 const employee = require('./routes/employeeRoutes');
 const superAdmin = require('./routes/superAdminRoutes');
 const admin = require('./routes/adminRoutes');
+const company = require('./routes/companyRoutes');
 
 app.use('/api/employee', employee)
 app.use('/api/super-admin', superAdmin)
 app.use('/api/admin', admin)
+app.use('/api/company', company)
 
 // listening to port 8000
 app.listen(8000, () => {
@@ -28,8 +29,8 @@ app.listen(8000, () => {
 })
 
 try {
-    sequelize.authenticate();
-    console.log('Connection has been established successfully.');
-  } catch (error) {
-    console.error('Unable to connect to the database:', error);
-  } 
+  sequelize.authenticate();
+  console.log('Connection has been established successfully.');
+}catch (error) {
+  console.error('Unable to connect to the database:', error);
+} 

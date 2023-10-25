@@ -2,7 +2,7 @@ const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../database/connection');
 
 // now that we have imported the instance of Sequelize, we can start building our model
-const Company_details = sequelize.define('Company_details', {
+const Company_details = sequelize.define('company_details', {
     company_id: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -43,6 +43,21 @@ const Company_details = sequelize.define('Company_details', {
     },
     contact2: {
         type: DataTypes.STRING(20)
+    },
+    cover_image_url: {
+        type: DataTypes.TEXT
+    },
+    company_image: {
+        type: DataTypes.TEXT
+    },
+    domain_access: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+    },
+    is_verified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 }, {
     freezeTableName: true

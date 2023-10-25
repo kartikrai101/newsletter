@@ -2,8 +2,8 @@ const {Sequelize, DataTypes} = require('sequelize');
 const sequelize = require('../database/connection');
 
 // create the admin model
-const Admin = sequelize.define('Admins', {
-    admin_id: {
+const User = sequelize.define('users', {
+    id: {
         type: DataTypes.STRING,
         allowNull: false,
         primaryKey: true,
@@ -57,11 +57,15 @@ const Admin = sequelize.define('Admins', {
     company_id: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    role: {
+        type: DataTypes.STRING,
+        allowNull: false
     }
 }, {
     freezeTableName: true
 });
 
 // now that you have defined the model, you need to build and save it using the sync method
-Admin.sync({alter: true});
-module.exports = Admin;
+User.sync({alter: true});
+module.exports = User;

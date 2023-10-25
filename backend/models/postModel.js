@@ -2,7 +2,7 @@ const {Sequelize, DataTypes} = require('sequelize')
 const sequelize = require('../database/connection')
 
 // define the post model
-const Post = sequelize.define('Posts', {
+const Post = sequelize.define('posts', {
     post_id: {
         type: DataTypes.STRING,
         unique: true,
