@@ -58,6 +58,10 @@ const Company_details = sequelize.define('company_details', {
     is_verified: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
+    },
+    consent: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     }
 }, {
     freezeTableName: true
