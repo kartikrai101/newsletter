@@ -1,8 +1,9 @@
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
-const jtw = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const {Company_details} = require('../models')
 const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 // ------------------------ functions ---------------------
 
@@ -38,10 +39,14 @@ async function verifyMailHandler(email, user_id){
     }
 }
 
+function generateAccessToken(user){
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15s'});
+}
 
 
 
-// ---------------------- controller functions ---------------------------
+
+// ------------------------ controller functions -----------------------------
 exports.companyRegister = async (req, res, next) => {
     const data = req.body;
 
@@ -105,5 +110,39 @@ exports.verifyMail = async (req, res, next) => {
 
     }catch(err){
         console.log(err.message)
+    }
+}
+
+exports.loginSuperAdmin = async (req, res, next) => {
+    // verify the email and password
+    const {email, password} = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    try{
+        let user = Company_details.findAll({
+            where: {
+                email_domain: email,
+                password: hashedPassword
+            }
+        })
+
+        const userData = {
+            email: email,
+            userId: user.company_id
+        }
+        // now that the user is verified, we need to send the jwt token
+        const access_token = generateAccessToken(userData);
+        const refresh_token = jwt.sign(userData, process.env.REFRESH_TOKEN_SECRET, {expiresIn: '1h'});
+
+        res.status(201).json({
+            success: true,
+            tokens: {access_token: access_token, refresh_token: refresh_token}
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: err
+        })
     }
 }
