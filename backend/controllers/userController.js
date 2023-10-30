@@ -9,6 +9,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const Like = require('../models/likeModel');
 
 
 
@@ -194,6 +195,7 @@ exports.refreshToken = async (req, res) => {
     })
 }
 
+// ----- post related controllers -----
 exports.createPost = async (req, res) => {
     // we simply need to extract all the data from req body and create a new post
     const post_id = uuidv4();
@@ -238,7 +240,6 @@ exports.getAllPosts = async (req, res) => {
 
     try{
         const company_id = req.user.company_id;
-        console.log(company_id)
         const posts = await Post.findAll({
             where: {
                 company_id: company_id
@@ -282,6 +283,127 @@ exports.getPost = async (req, res) => {
     }
 }
 
+exports.updatePost = async (req, res) => {
+    const post_id = req.params.id;
+    const admin_id = req.admin.user_id;
+    const post_content = req.body.post_content;
+    const image_url = req.body.image_url;
+    const video_url = req.body.video_url;
+    const admin = await User.findOne({
+        where: {
+            user_id: admin_id
+        }
+    })
+    const company_id = admin.dataValues.company_id;
+
+    const postData = {
+        post_id: post_id,
+        post_creator_id: admin_id,
+        post_content: post_content,
+        image_urls: image_url,
+        video_url: video_url,
+        company_id: company_id
+    }
+
+    try{
+        const response = await Post.update(postData, {
+            where: {
+                post_id: post_id
+            }
+        });
+        res.status(201).json({
+            success: true,
+            message: "Post updated!",
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not update the post",
+            err
+        })
+    } 
+}
+
+exports.deletePost = async (req, res) => {
+    try{
+        const post_id = req.params.id;
+        // check if that post even exists?
+        const post = await Post.findOne({
+            where:{
+                post_id: post_id
+            }
+        })
+        if(post === null) return res.status(401).json({
+            success: false,
+            message: "post does not exist!"
+        })
+
+        const response = await Post.destroy({
+            where: {
+                post_id: post_id
+            }
+        })
+        console.log(response);
+        res.status(201).json({
+            success: true,
+            message: "post deleted successfully!"
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not delete the post!",
+            err
+        })
+    }
+}
+
+// ----- likes related controllers -----
+
+exports.likePost = async (req, res) => {
+    try{
+        const user_id = req.user.user_id;
+        const company_id  = req.user.company_id;
+        const post_id = req.params.id;
+    
+        const like_data = {
+            creator_id: user_id,
+            company_id: company_id,
+            post_id: post_id
+        }
+
+        // check if the post is already liked by this user
+        const likeExist = await Like.findOne(like_data);
+        if(likeExist !== null){
+            // then dislike the post
+            const dislike = await Like.destroy({
+                where: {
+                    creator_id: user_id,
+                    post_id: post_id
+                }
+            })
+
+            return res.status(201).json({
+                success: true,
+                message: "successfully disliked the post!"
+            })
+        }
+    
+        const newLike = await Like.create(like_data);
+
+        res.status(201).json({
+            success: true,
+            message: "successfully liked the post"
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not like the post!",
+            err
+        })
+    }
+}
+
+
 
 // ------------------------- handler functions ----------------------------
 async function verifyMailHandler(email, user_id){
@@ -318,7 +440,7 @@ async function verifyMailHandler(email, user_id){
 }
 
 function generateAccessToken(user){
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '30m'})
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '3h'})
 }
 
 

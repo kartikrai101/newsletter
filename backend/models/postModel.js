@@ -30,5 +30,5 @@ const Post = sequelize.define('posts', {
     freezeTableName: true
 })
 
-Post.sync({force: true})
+Post.sync({alter: true});
 module.exports = Post;
