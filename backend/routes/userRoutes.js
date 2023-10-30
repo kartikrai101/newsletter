@@ -8,7 +8,7 @@ router.route('/login').post(login)
 router.route('/token').post(refreshToken)
 
 // posts routes
-router.route('/allPosts').get(authenticateUser, getAllPosts)
-router.route('/createPost').post(authenticateAdmin, createPost)
+router.route('/posts').get(authenticateUser, getAllPosts)
+router.route('/post/create').post(authenticateAdmin, createPost)
 
 module.exports = router;

@@ -150,7 +150,8 @@ exports.login = async (req, res) => {
         const userData = {
             email: email,
             user_id: response.user_id,
-            role: response.role
+            role: response.role,
+            company_id: response.company_id
         }
 
         const access_token = generateAccessToken(userData);
@@ -160,7 +161,7 @@ exports.login = async (req, res) => {
             success: true,
             message: "User successfully logged in!",
             access_token: access_token,
-            refresh_token: refresh_token
+            refresh_token: refresh_token,
         })
     }catch(err){
         res.status(401).json({
@@ -193,34 +194,10 @@ exports.refreshToken = async (req, res) => {
     })
 }
 
-exports.getAllPosts = async (req, res) => {
-    try{
-        const posts = await Post.findAll();
-
-        if(posts.length === 0)
-        return res.status(401).json({
-            success: false,
-            message: "no posts yet!"
-        })
-
-        res.status(201).json({
-            success: true,
-            message: "list of posts",
-            posts
-        })
-    }catch(err){
-        res.status(401).json({
-            success: false,
-            message: "could not fetch user list",
-            err
-        })
-    }
-}
-
 exports.createPost = async (req, res) => {
     // we simply need to extract all the data from req body and create a new post
     const post_id = uuidv4();
-    const admin_id = req.user.user_id;
+    const admin_id = req.admin.user_id;
     const post_content = req.body.post_content;
     const image_url = req.body.image_url;
     const video_url = req.body.video_url;
@@ -233,9 +210,9 @@ exports.createPost = async (req, res) => {
 
     const postData = {
         post_id: post_id,
-        admin_id: admin_id,
+        post_creator_id: admin_id,
         post_content: post_content,
-        image_url: image_url,
+        image_urls: image_url,
         video_url: video_url,
         company_id: company_id
     }
@@ -254,6 +231,31 @@ exports.createPost = async (req, res) => {
             err
         })
     }   
+}
+
+exports.getAllPosts = async (req, res) => {
+    // simply return all the posts in the database that belong to that company
+
+    try{
+        const company_id = req.user.company_id;
+        const posts = await Post.findAll({
+            where: {
+                company_id: company_id
+            }
+        })
+        res.status(201).json({
+            success: true,
+            message: "fetched all the posts",
+            posts,
+            company_id
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "error in fetching the posts...",
+            err
+        })
+    }
 }
 
 
@@ -293,7 +295,7 @@ async function verifyMailHandler(email, user_id){
 }
 
 function generateAccessToken(user){
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '30s'})
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '30m'})
 }
 
 
@@ -314,21 +316,30 @@ exports.authenticateUser = async (req, res, next) => {
     }) 
 }
 exports.authenticateAdmin = async (req, res, next) => {
-    const authHeader = req.headers['authorization']
-    const token = authHeader && authHeader.split(' ')[1];
+    try{
+        const authHeader = req.headers['authorization']
+        const token = authHeader && authHeader.split(' ')[1];
+    
+        if(token === null) return res.status(401).json({success: false, message: "Access token not found"});
 
-    if(token === null) return res.status(401).json({success: false, message: "Access token not found"});
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if(err) return res.status(401).json({success: false, err})
-
-        if(user.role === "user"){
-            return res.status(401).json({
-                success: false,
-                message: "unauthorized access"
-            })
-        }
-
-        req.admin = user;
-        next();
-    })
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+            if(err) return res.status(401).json({success: false, err})
+    
+            // if(user.role === "user"){
+            //     return res.status(401).json({
+            //         success: false,
+            //         message: "unauthorized access"
+            //     })
+            // }
+    
+            req.admin = user;
+            next();
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "seems like you don't have access to create a post",
+            err
+        })
+    }
 }
