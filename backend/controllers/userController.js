@@ -411,7 +411,22 @@ exports.likePost = async (req, res) => {
 exports.likes = async (req, res) => {
     // you just need to return the list of all the likes on that post
     try{
+        const post_id = req.params.id;
+        const company_id = req.user.company_id;
 
+        // fetch all the likes of this company on this post
+        const likeList = await Like.findAll({
+            where:{
+                company_id: company_id,
+                post_id: post_id
+            }
+        })
+
+        res.status(201).json({
+            success: true,
+            message: "successfully fetched the list of likes on this post!",
+            likeList
+        })
     }catch(err){
         res.status(401).json({
             success: false,
@@ -420,6 +435,8 @@ exports.likes = async (req, res) => {
         })
     }
 }
+
+// ----- comments related controllers ----
 
 
 
