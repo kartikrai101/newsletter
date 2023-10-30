@@ -13,14 +13,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 // Route imports
-const employee = require('./routes/employeeRoutes');
 const superAdmin = require('./routes/superAdminRoutes');
-const admin = require('./routes/adminRoutes');
 const company = require('./routes/companyRoutes');
+const user = require('./routes/userRoutes')
 
-app.use('/api/employee', employee)
+app.use('/api/user', user)
 app.use('/api/super-admin', superAdmin)
-app.use('/api/admin', admin)
 app.use('/api/company', company)
 
 // listening to port 8000

@@ -3,7 +3,7 @@ const sequelize = require('../database/connection');
 
 // create the admin model
 const User = sequelize.define('users', {
-    id: {
+    user_id: {
         type: DataTypes.STRING,
         allowNull: false,
         primaryKey: true,
@@ -19,7 +19,6 @@ const User = sequelize.define('users', {
     },
     position: {
         type: DataTypes.STRING,
-        allowNull: false
     },
     experience: {
         type: DataTypes.INTEGER
@@ -27,7 +26,7 @@ const User = sequelize.define('users', {
     email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: false
+        unique: true
     },
     password: {
         type: DataTypes.STRING,
@@ -60,6 +59,12 @@ const User = sequelize.define('users', {
     },
     role: {
         type: DataTypes.STRING,
+        defaultValue: "user",
+        allowNull: false
+    },
+    is_verified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
         allowNull: false
     }
 }, {
