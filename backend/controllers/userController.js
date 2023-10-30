@@ -466,6 +466,32 @@ exports.createComment = async (req, res) => {
     }
 }
 
+exports.getComments = async (req, res) => {
+    try{
+        // you just need to fetch all the comments on this post
+        const post_id = req.params.id;
+        const company_id = req.user.company_id;
+
+        const comments = await Comment.findAll({
+            where:{
+                post_id: post_id,
+                company_id: company_id
+            }
+        })
+
+        res.status(201).json({
+            success: true,
+            message: "successfully fetched all the comments on this post",
+            comments
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not fetch all comments!",
+            err
+        })
+    }
+}
 
 
 

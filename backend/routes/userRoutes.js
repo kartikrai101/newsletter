@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {register, verifyEmail, login, authenticateUser, authenticateAdmin, getAllPosts, refreshToken, createPost, getPost, updatePost, deletePost, likePost, likes, createComment} = require('../controllers/userController');
+const {register, verifyEmail, login, authenticateUser, authenticateAdmin, getAllPosts, refreshToken, createPost, getPost, updatePost, deletePost, likePost, likes, createComment, getComments} = require('../controllers/userController');
 
 router.route('/register').post(register)
 router.route('/verify').get(verifyEmail)
@@ -20,5 +20,6 @@ router.route('/post/:id/likes').get(authenticateUser, likes)
 
 // comments routes
 router.route('/post/:id/comment').post(authenticateUser, createComment)
+router.route('/post/:id/comments').get(authenticateUser, getComments)
 
 module.exports = router;
