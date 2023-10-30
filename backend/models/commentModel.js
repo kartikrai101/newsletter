@@ -8,10 +8,6 @@ const Comment = sequelize.define('comments', {
         allowNull: false,
         primaryKey: true
     },
-    created_at: {
-        type: DataTypes.DATE,
-        allowNull: false
-    },
     comment_creator_id: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -21,6 +17,10 @@ const Comment = sequelize.define('comments', {
         allowNull: false
     },
     company_id: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    post_id: {
         type: DataTypes.STRING,
         allowNull: false
     }

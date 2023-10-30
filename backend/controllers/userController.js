@@ -10,6 +10,7 @@ require('dotenv').config();
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const Like = require('../models/likeModel');
+const Comment = require('../models/commentModel');
 
 
 
@@ -437,6 +438,36 @@ exports.likes = async (req, res) => {
 }
 
 // ----- comments related controllers ----
+exports.createComment = async (req, res) => {
+    try{
+        // extract all the comment related details and create a new comment
+        const comment_creator_id = req.user.user_id;
+        const post_id = req.params.id;
+        const comment_content = req.body.comment_content;
+        const company_id = req.user.company_id;
+        const comment_id = uuidv4();
+
+        const newComment = await Comment.create({
+            comment_id, company_id, comment_content, post_id, comment_creator_id
+        })
+
+        res.status(201).json({
+            success: true,
+            message: "successfully commented on the post!",
+            newComment
+        })
+        
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not create the comment!",
+            err
+        })
+    }
+}
+
+
+
 
 
 
