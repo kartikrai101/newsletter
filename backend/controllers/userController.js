@@ -220,10 +220,41 @@ exports.getAllPosts = async (req, res) => {
 exports.createPost = async (req, res) => {
     // we simply need to extract all the data from req body and create a new post
     const post_id = uuidv4();
-    const admin_id = req.admin_id;
+    const admin_id = req.user.user_id;
+    const post_content = req.body.post_content;
+    const image_url = req.body.image_url;
+    const video_url = req.body.video_url;
+    const admin = await User.findOne({
+        where: {
+            user_id: admin_id
+        }
+    })
+    const company_id = admin.dataValues.company_id;
+
+    const postData = {
+        post_id: post_id,
+        admin_id: admin_id,
+        post_content: post_content,
+        image_url: image_url,
+        video_url: video_url,
+        company_id: company_id
+    }
+
+    try{
+        const response = await Post.create(postData);
+        res.status(201).json({
+            success: true,
+            message: "Post created!",
+            response
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not create the post",
+            err
+        })
+    }   
 }
-
-
 
 
 
