@@ -372,7 +372,12 @@ exports.likePost = async (req, res) => {
         }
 
         // check if the post is already liked by this user
-        const likeExist = await Like.findOne(like_data);
+        const likeExist = await Like.findOne({
+            where: {
+                creator_id: user_id,
+                post_id: post_id
+            }
+        });
         if(likeExist !== null){
             // then dislike the post
             const dislike = await Like.destroy({
@@ -398,6 +403,19 @@ exports.likePost = async (req, res) => {
         res.status(401).json({
             success: false,
             message: "could not like the post!",
+            err
+        })
+    }
+}
+
+exports.likes = async (req, res) => {
+    // you just need to return the list of all the likes on that post
+    try{
+
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not fetch likes list!",
             err
         })
     }
