@@ -238,6 +238,7 @@ exports.getAllPosts = async (req, res) => {
 
     try{
         const company_id = req.user.company_id;
+        console.log(company_id)
         const posts = await Post.findAll({
             where: {
                 company_id: company_id
@@ -258,6 +259,28 @@ exports.getAllPosts = async (req, res) => {
     }
 }
 
+exports.getPost = async (req, res) => {
+    // return a certail post by taking the post id from the url as parameter
+    try{
+        const post_id = req.params.id;
+        const post = await Post.findOne({
+            where: {
+                post_id: post_id
+            }
+        })
+        res.status(201).json({
+            success: true,
+            message: 'rendering certain post',
+            post
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not fetch the requested post",
+            err
+        })
+    }
+}
 
 
 // ------------------------- handler functions ----------------------------
