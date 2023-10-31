@@ -51,7 +51,8 @@ const User = sequelize.define('users', {
         type: DataTypes.ARRAY(DataTypes.STRING)
     },
     blocked: {
-        type: DataTypes.BOOLEAN
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     },
     company_id: {
         type: DataTypes.STRING,
@@ -66,6 +67,9 @@ const User = sequelize.define('users', {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
         allowNull: false
+    },
+    description: {
+        type: DataTypes.TEXT
     }
 }, {
     freezeTableName: true

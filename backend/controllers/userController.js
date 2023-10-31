@@ -225,6 +225,47 @@ exports.getUser = async (req, res) => {
     }
 }
 
+exports.updateProfile = async (req, res) => {
+    try{
+        // check if the user who is trying to update the profile is the actual 
+        // creator of that profile
+        const owner_id = req.user.user_id;
+        const user_id = req.params.id;
+
+        if(owner_id !== user_id) return res.status(401).json({
+            success: false,
+            message: "unauthorized access!"
+        })
+
+        const {fname, lname, position, experience, 
+            contact, linkedIn, profile_pic_url, 
+            cover_pic_url, description} = req.body;
+
+        const updatedUser = await User.update({
+            fname, lname, position, experience, 
+            contact, linkedIn, profile_pic_url, 
+            cover_pic_url, description
+        }, {
+            where: {
+                user_id: user_id
+            }
+        })
+
+        res.status(201).json({
+            success: true,
+            message: "successfully updated the user profile!",
+            updatedUser
+        })
+        
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not update the profile",
+            err
+        })
+    }
+}
+
 // ----- post related controllers -----
 exports.createPost = async (req, res) => {
     // we simply need to extract all the data from req body and create a new post
