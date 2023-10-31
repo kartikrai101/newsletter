@@ -450,6 +450,56 @@ exports.deletePost = async (req, res) => {
     }
 }
 
+exports.savePost = async (req, res) => {
+    try{
+        const user_id = req.user.user_id;
+        const post_id = req.params.id;
+
+        const user = await User.findOne({
+            where: {
+                user_id: user_id
+            }
+        })
+
+        // check if this post is already saved
+        for(let post of user.saved_posts){
+            if(post === post_id)
+            return res.status(401).json({
+                success: false,
+                message: "post already saved!"
+            })
+        }
+
+        let savedPosts = [];
+
+        if(user.saved_posts === null){
+            savedPosts = [post_id]
+        }else{
+            savedPosts = [...user.saved_posts, post_id]
+        }
+
+        // const savedPosts = [...user.saved_posts, post_id];
+
+
+        const response = await User.update({saved_posts: savedPosts}, {
+            where: {
+                user_id: user_id
+            }
+        })
+
+        res.status(201).json({
+            success: true,
+            message: "post saved successfully!",
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not save this post!",
+            err
+        })
+    }
+}
+
 // ----- likes related controllers -----
 
 exports.likePost = async (req, res) => {
