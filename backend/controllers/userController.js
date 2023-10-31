@@ -552,6 +552,48 @@ exports.updateComment = async (req, res) => {
     }
 }
 
+exports.deleteComment = async (req, res) => {
+    try{
+        // first of all we need to check if the user is authorized to delete it or not!
+        const comment_id = req.params.commentId;
+        const user_id = req.user.user_id;
+
+        const ogComment = await Comment.findOne({
+            where: {
+                comment_id: comment_id
+            }
+        })
+        const creator_id = ogComment.comment_creator_id;
+        if(creator_id !== user_id) return res.status(401).json({
+            success: false,
+            message: "unauthorized access!"
+        })
+
+        const response = await Comment.destroy({
+            where: {
+                comment_id: comment_id
+            }
+        })
+
+        res.status(201).json({
+            success: false,
+            message: "successfully deleted the comment!"
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not delete the comment",
+            err
+        })
+    }
+}
+
+
+
+
+
+
+
 
 
 // ------------------------- handler functions ----------------------------
