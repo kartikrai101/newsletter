@@ -196,6 +196,35 @@ exports.refreshToken = async (req, res) => {
     })
 }
 
+exports.getUser = async (req, res) => {
+    try{
+        // simply return the user details of the user that is being called for
+        
+        const user_id = req.params.id;
+        const user = await User.findOne({
+            where: {
+                user_id: user_id
+            }
+        })
+        if(user === null) return res.status(401).json({
+            success: false,
+            message: "user does not exist!"
+        })
+
+        res.status(201).json({
+            success: true,
+            message: "successfully fetched the user!",
+            user: user
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not get the user!",
+            err
+        })
+    }
+}
+
 // ----- post related controllers -----
 exports.createPost = async (req, res) => {
     // we simply need to extract all the data from req body and create a new post
