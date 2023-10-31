@@ -287,6 +287,19 @@ exports.getPost = async (req, res) => {
 exports.updatePost = async (req, res) => {
     const post_id = req.params.id;
     const admin_id = req.admin.user_id;
+    // first of all we need to check if this admin has created this post or not
+    const postDetail = await Post.findOne({
+        where: {
+            post_id: post_id
+        }
+    })
+    if(postDetail.post_creator_id !== admin_id)
+    return res.status(401).json({
+        success: false,
+        message: "unauthorized access!"
+    })
+
+
     const post_content = req.body.post_content;
     const image_url = req.body.image_url;
     const video_url = req.body.video_url;
@@ -328,7 +341,9 @@ exports.updatePost = async (req, res) => {
 exports.deletePost = async (req, res) => {
     try{
         const post_id = req.params.id;
-        // check if that post even exists?
+        const admin_id = req.admin.user_id;
+
+        // check if that post even exists
         const post = await Post.findOne({
             where:{
                 post_id: post_id
@@ -338,6 +353,13 @@ exports.deletePost = async (req, res) => {
             success: false,
             message: "post does not exist!"
         })
+
+        if(post.post_creator_id !== admin_id)
+        return res.status(401).json({
+            success: false,
+            message: "unauthorized access!"
+        })
+
 
         const response = await Post.destroy({
             where: {
@@ -493,7 +515,42 @@ exports.getComments = async (req, res) => {
     }
 }
 
+exports.updateComment = async (req, res) => {
+    // first of all we need to check if this comment is being updated by the creator only
+    try{
+        const comment_id = req.params.commentId;
+        const user_id = req.user.user_id;
+        const comment_content = req.body.comment_content;
 
+        const ogComment = await Comment.findOne({
+            where: {
+                comment_id: comment_id
+            }
+        })
+        const creator_id = ogComment.comment_creator_id;
+        if(creator_id !== user_id) return res.status(401).json({
+            success: false,
+            message: "unauthorized access!"
+        })
+
+        const updatedComment = await Comment.update({comment_content: comment_content}, {
+            where: {
+                comment_id: comment_id
+            }
+        })
+        res.status(201).json({
+            success: true,
+            message: "comment updated successfully!",
+            updatedComment
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not update the comment!",
+            err
+        })
+    }
+}
 
 
 
