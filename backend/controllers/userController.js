@@ -500,6 +500,51 @@ exports.savePost = async (req, res) => {
     }
 }
 
+exports.unsavePost = async (req, res) => {
+    try{
+        const user_id = req.user.user_id;
+        const post_id = req.params.id;
+
+        // check if this post is saved or not?
+        const user = await User.findOne({
+            where: {
+                user_id: user_id
+            }
+        })
+
+        let savedPosts = user.saved_posts;
+
+
+        for (let i = 0; i < savedPosts.length; i++) {
+            if (savedPosts[i] === post_id) {
+                let spliced = savedPosts.splice(i, 1);
+
+                const updated = User.update({saved_posts: savedPosts}, {
+                    where: {
+                        user_id: user_id
+                    }
+                })
+
+                return res.status(201).json({
+                    success: true,
+                    message: "post unsaved successfully!"
+                })
+            }
+        }
+
+        res.status(401).json({
+            success: false,
+            message: "post not saved!"
+        })
+    }catch(err){
+        res.status(401).json({
+            success: false,
+            message: "could not unsave the post!",
+            err
+        })
+    }
+}
+
 // ----- likes related controllers -----
 
 exports.likePost = async (req, res) => {
