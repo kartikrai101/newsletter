@@ -148,6 +148,14 @@ exports.login = async (req, res) => {
             })
         }
 
+        // check if the user's email is verified or not
+        if(response.is_verified === false){
+            return res.status(401).json({
+                success: false,
+                message: "please verify your email first!"
+            })
+        }
+
         // now that the email and password are verified, we need to send the access and refresh token in response to the user
         const userData = {
             email: email,
@@ -156,7 +164,7 @@ exports.login = async (req, res) => {
             company_id: response.company_id
         }
 
-        const access_token = generateAccessToken(userData);
+        const access_token = await generateAccessToken(userData);
         const refresh_token = jwt.sign(userData, process.env.REFRESH_TOKEN_SECRET, {expiresIn: '30d'})
 
         res.status(201).json({
@@ -183,15 +191,21 @@ exports.refreshToken = async (req, res) => {
         message: "Refresh token not found!"
     })
 
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-        if(err) return res.status(403).json({success: false, message: "Refresh token not valid!"})
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, token_data) => {
+        if(err) return res.status(403).json({success: false, message: "Refresh token not valid!", err})
 
-        const access_token = generateAccessToken({email: user.email, user_id: user.user_id, role: user.role});
+        const user_data = await User.findOne({
+            where: {
+                user_id: token_data.user_id
+            }
+        })
+
+        const access_token = generateAccessToken({email: user_data.email, user_id: user_data.user_id, role: user_data.role});
+
         res.status(201).json({
             success: true, 
             accessToken: access_token,
             refreshToken: refreshToken,
-            role: user.role
         })
     })
 }
@@ -795,8 +809,8 @@ async function verifyMailHandler(email, user_id){
     }
 }
 
-function generateAccessToken(user){
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '3h'})
+async function generateAccessToken(user){
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'})
 }
 
 
@@ -809,9 +823,10 @@ exports.authenticateUser = async (req, res, next) => {
     const token = authHeader && authHeader.split(' ')[1];
 
     if(token === null) return res.status(403).json({success: false, message: "Access token not found!"})
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if(err) return res.status(403).json({success: false, err})
 
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if(err){ return res.status(403).json({success: false, err})}
+        
         req.user = user;
         next();
     }) 
@@ -823,17 +838,17 @@ exports.authenticateAdmin = async (req, res, next) => {
     
         if(token === null) return res.status(401).json({success: false, message: "Access token not found"});
 
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, token_data) => {
             if(err) return res.status(401).json({success: false, err})
     
-            // if(user.role === "user"){
-            //     return res.status(401).json({
-            //         success: false,
-            //         message: "unauthorized access"
-            //     })
-            // }
+            if(token_data.role !== "admin"){
+                return res.status(401).json({
+                    success: false,
+                    message: "unauthorized access"
+                })
+            }
     
-            req.admin = user;
+            req.admin = token_data;
             next();
         })
     }catch(err){

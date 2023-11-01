@@ -19,7 +19,7 @@ const user = require('./routes/userRoutes');
 const search = require('./routes/searchingRoutes');
 
 app.use('/api/user', user)
-app.use('/api/super-admin', superAdmin)
+app.use('/api/superadmin', superAdmin)
 app.use('/api/company', company)
 app.use('/api/search', search)
 

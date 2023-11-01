@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const {Company_details} = require('../models')
+const {Company_details, Super_admins} = require('../models')
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
@@ -96,8 +96,19 @@ exports.companyRegister = async (req, res, next) => {
         domain_access: domain
     }
 
+    const super_admin_id = uuidv4();
+    const superAdminData = {
+        super_admin_id: super_admin_id,
+        fname: data.fname,
+        lname: data.lname,
+        email: data.email_domain,
+        password: generatedPass,
+        company_id: company_id
+    }
+
     try{
         const response = await Company_details.create(companyData);
+        const response2 = await Super_admins.create(superAdminData);
 
         // now that the user details are saved, let's do email verification
         await verifyMailHandler(data.email_domain, company_id);
@@ -143,16 +154,16 @@ exports.loginHandler = async (req, res, next) => {
     const {email, password} = req.body;
 
     try{
-        const user = await Company_details.findOne({
+        const company = await Company_details.findOne({
             where: {
                 email_domain: email
             }
         })
 
-        if(user.length === 0) return res.status(403).json({success: false, message: "Invalid email or password!", user, hashedPassword})
-        //console.log(user)
+        if(company === null) return res.status(403).json({success: false, message: "Invalid email or password!", company, hashedPassword})
+        //console.log(company)
 
-        const isValid = await bcrypt.compare(password, user.password);
+        const isValid = await bcrypt.compare(password, company.password);
         if(!isValid){
             return res.status(401).json({
                 success: false,
@@ -160,10 +171,26 @@ exports.loginHandler = async (req, res, next) => {
             })
         }
 
+        // check if the email is verified for that user of not!
+        if(company.is_verified === false){
+            return res.status(401).json({
+                success: false,
+                message: "please verify your email first!"
+            })
+        }
+
+        // find the super_admin_id of that company
+        const super_admin = await Super_admins.findOne({
+            where: {
+                company_id: company.company_id
+            }
+        })
+
         const userData = {
             email: email,
-            company_id: user.company_id,
-            role: user.role
+            company_id: company.company_id,
+            role: "super",
+            super_admin_id: super_admin.super_admin_id
         }
         // now that the user is verified, we need to send the jwt token
         const access_token = generateAccessToken(userData);
@@ -171,14 +198,14 @@ exports.loginHandler = async (req, res, next) => {
 
         res.status(201).json({
             success: true,
-            user,
+            message: "successfully logged in!",
             tokens: {access_token: access_token, refresh_token: refresh_token}
         })
     }catch(err){
-        console.log(err)
         res.status(401).json({
             success: false,
-            message: "ye wala"
+            message: "error logging in!",
+            err
         })
     }
 }
@@ -196,9 +223,22 @@ exports.refreshTokenHandler = (req, res) => {
             message: "Refresh token not found!"
         })
     
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, token_data) => {
         if(err) return res.status(403).json({success: false, message: "Refresh token not valid!"})
-        const accessToken = generateAccessToken({email: user.email, role: user.role})
+
+        //get the original details of the company from database and use them to generate the new access token
+        const company_details = await Super_admins.findOne({
+            where: {
+                company_id: token_data.company_id
+            }
+        })
+        const accessToken = generateAccessToken({
+            email: company_details.email, 
+            role: company_details.role, 
+            company_id: company_details.company_id,
+            super_admin_id: company_details.super_admin_id
+        })
+
         res.status(201).json({
             success: true, 
             accessToken: accessToken,

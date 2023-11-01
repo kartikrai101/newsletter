@@ -10,7 +10,7 @@ router.route('/:id').get(authenticateUser, getUser)
 router.route('/:id').put(authenticateUser, updateProfile)
 
 // posts routes
-router.route('/posts').get(authenticateUser, getAllPosts)
+router.route('/post/all').get(authenticateUser, getAllPosts)
 router.route('/post/create').post(authenticateAdmin, createPost)
 router.route('/post/:id').get(authenticateUser, getPost)
 router.route('/post/:id').put(authenticateAdmin, updatePost)
