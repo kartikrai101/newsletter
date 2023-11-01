@@ -3,6 +3,8 @@ const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const { User } = require("../models");
+const jwt = require('jsonwebtoken')
+require('dotenv').config()
 
 // ------------------------ controller functions -----------------------------
 
@@ -77,7 +79,7 @@ exports.authenticateSuperAdmin = async (req, res, next) => {
     if(token === null) return res.status(403).json({success: false, message: "Access token not found!"})
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, token_data) => {
-        if(err) return res.status(403).json({success: false, err})
+        if(err) return res.status(403).json({success: false, message: "this one", err})
 
         if(token_data.role !== "super") return res.status(401).json({success: false, message: "unauthorized access!"})
 
